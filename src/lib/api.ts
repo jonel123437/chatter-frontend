@@ -1,15 +1,24 @@
-import { LoginResponse } from "@/types/user.type";
+export interface LoginPayload {
+  email: string;
+  password: string;
+}
 
-export async function loginUser(data: { email: string; password: string }): Promise<LoginResponse> {
-  const res = await fetch("/api/login", {
+export interface LoginResponse {
+  access_token: string;
+  user: any; // adjust type if you have a User type
+}
+
+export async function loginUser(payload: LoginPayload): Promise<LoginResponse> {
+  const res = await fetch("http://localhost:5000/auth/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
+    body: JSON.stringify(payload),
   });
 
   if (!res.ok) {
-    throw new Error("Invalid credentials");
+    const error = await res.json();
+    throw new Error(error.message || "Login failed");
   }
 
-  return res.json();
+  return res.json(); // will return { access_token, user }
 }

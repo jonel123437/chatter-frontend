@@ -14,7 +14,13 @@ export function useLogin() {
     try {
       const data = loginValidator.parse(values); // validate inputs
       const response = await loginUser(data);
-      localStorage.setItem("token", response.token); // simple token storage
+
+      // store the JWT token
+      localStorage.setItem("token", response.access_token);
+
+      // optionally, you can also store the user info if needed
+      localStorage.setItem("user", JSON.stringify(response.user));
+
       router.push("/dashboard"); // redirect after login
     } catch (err: any) {
       setError(err.message || "Login failed");
