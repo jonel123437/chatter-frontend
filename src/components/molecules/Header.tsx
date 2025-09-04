@@ -5,7 +5,6 @@ import {
   AppBar,
   Toolbar,
   Typography,
-  Button,
   Box,
   Menu,
   MenuItem,
@@ -14,17 +13,12 @@ import {
 import AccountCircle from "@mui/icons-material/AccountCircle";
 import { useRouter } from "next/navigation";
 
-interface HeaderProps {
-  title?: string;
-}
-
-export const Header: React.FC<HeaderProps> = ({ title = "Chatter Dashboard" }) => {
+export const Header: React.FC = () => {
   const router = useRouter();
   const [userName, setUserName] = useState("User");
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   useEffect(() => {
-    // Get user info from localStorage (or a global context)
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       setUserName(JSON.parse(storedUser).name);
@@ -48,7 +42,14 @@ export const Header: React.FC<HeaderProps> = ({ title = "Chatter Dashboard" }) =
   return (
     <AppBar position="static">
       <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-        <Typography variant="h6">{title}</Typography>
+        <Typography
+          variant="h6"
+          sx={{ cursor: "pointer" }}
+          onClick={() => router.push("/dashboard")}
+        >
+          Chatter
+        </Typography>
+
         <Box>
           <IconButton
             size="large"
@@ -63,21 +64,22 @@ export const Header: React.FC<HeaderProps> = ({ title = "Chatter Dashboard" }) =
           <Menu
             id="menu-appbar"
             anchorEl={anchorEl}
-            anchorOrigin={{
-              vertical: "bottom", // move the anchor point to the bottom of the button
-              horizontal: "right",
-            }}
+            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
             keepMounted
-            transformOrigin={{
-              vertical: "top", // the top of the menu aligns with the bottom of the button
-              horizontal: "right",
-            }}
+            transformOrigin={{ vertical: "top", horizontal: "right" }}
             open={Boolean(anchorEl)}
             onClose={handleClose}
           >
+            <MenuItem
+              onClick={() => {
+                handleClose();
+                router.push("/profile");
+              }}
+            >
+              Profile
+            </MenuItem>
             <MenuItem onClick={handleLogout}>Logout</MenuItem>
           </Menu>
-
         </Box>
       </Toolbar>
     </AppBar>

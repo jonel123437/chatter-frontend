@@ -22,3 +22,17 @@ export async function loginUser(payload: LoginPayload): Promise<LoginResponse> {
 
   return res.json(); // will return { access_token, user }
 }
+
+export async function createPost(content: string) {
+  const res = await fetch('/api/posts', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ content }),
+  });
+  return res.json();
+}
+
+export async function getPosts() {
+  const res = await fetch('/api/posts');
+  return res.json();
+}
