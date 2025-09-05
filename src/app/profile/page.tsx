@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Box, Container, Paper } from "@mui/material";
+import { Box, Paper } from "@mui/material";
 import { Header } from "../../components/molecules/Header";
 import PostForm from "../../components/molecules/PostForm";
 import PostsList from "../../components/organisms/PostsList";
@@ -17,32 +17,28 @@ export default function ProfilePage() {
     onPostCreated: (newPost) => setPosts((prev) => [newPost, ...prev]),
   });
 
-  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const storedUser = localStorage.getItem("user");
-
-    if (!token) {
+    const storedToken = localStorage.getItem("token");
+    if (!storedToken) {
       router.push("/auth/login");
       return;
     }
-
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    setToken(storedToken);
 
     fetchPosts();
   }, [router]);
 
-  if (!user) return null;
+  if (!token) return null;
 
   return (
     <Box>
       <Header />
 
       <Box sx={{ p: 4, display: "flex", flexDirection: "column", gap: 4 }}>
-        <ProfileHeader name={user.name} email={user.email} />
+        {/* Profile Header */}
+        <ProfileHeader token={token} />
 
         <Paper elevation={1} sx={{ p: 2, borderRadius: 2 }}>
           <PostForm createPost={createPost} onPostCreated={() => fetchPosts()} />

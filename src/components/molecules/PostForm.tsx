@@ -1,23 +1,73 @@
 "use client";
 
-import React, { useState } from "react";
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Avatar, TextField, Stack } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Avatar,
+  TextField,
+  Stack,
+} from "@mui/material";
 import { Post } from "@/app/profile/hooks/useFetchUserPosts";
 import { PostModalContent } from "./PostModalContent";
 
+interface StoredUser {
+  id: string;
+  name: string;
+  email: string;
+  profilePicture?: string;
+}
+
 interface PostFormProps {
-  username?: string;
-  profilePic?: string; // optional profile picture
-  createPost: (content: string, visibility: "public" | "friends" | "only_me") => Promise<Post>;
+  createPost: (
+    content: string,
+    visibility: "public" | "friends" | "only_me"
+  ) => Promise<Post>;
   onPostCreated?: (newPost: Post) => void;
 }
 
-const PostForm: React.FC<PostFormProps> = ({ username = "User", profilePic, createPost, onPostCreated }) => {
+const API_BASE = "http://localhost:5000";
+
+const PostForm: React.FC<PostFormProps> = ({ createPost, onPostCreated }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [visibility, setVisibility] = useState<"public" | "friends" | "only_me">("public");
+  const [visibility, setVisibility] =
+    useState<"public" | "friends" | "only_me">("public");
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
+  const [user, setUser] = useState<StoredUser | null>(null);
+
+  useEffect(() => {
+    const raw = localStorage.getItem("user");
+    console.log("Raw user from localStorage:", raw);
+
+    if (raw) {
+      try {
+        const parsed: StoredUser = JSON.parse(raw);
+        console.log("Parsed user object:", parsed);
+
+        const profileUrl = parsed.profilePicture
+          ? parsed.profilePicture.startsWith("http")
+            ? parsed.profilePicture
+            : `${API_BASE}${
+                parsed.profilePicture.startsWith("/") ? "" : "/"
+              }${parsed.profilePicture}`
+          : "/images/profile.webp";
+
+        const fullUser = { ...parsed, profilePicture: profileUrl };
+
+        console.log("Final user state:", fullUser);
+
+        setUser(fullUser);
+      } catch (err) {
+        console.error("Error parsing user from localStorage:", err);
+      }
+    }
+  }, []);
 
   const handleOpen = () => setModalOpen(true);
   const handleClose = () => {
@@ -40,10 +90,20 @@ const PostForm: React.FC<PostFormProps> = ({ username = "User", profilePic, crea
   return (
     <>
       {/* Profile and input inline using Stack */}
-      <Stack direction="row" spacing={2} alignItems="center" sx={{ cursor: "text" }} onClick={handleOpen}>
-        <Avatar src={profilePic || "/images/profile.webp"} alt={username} sx={{ width: 48, height: 48 }} />
+      <Stack
+        direction="row"
+        spacing={2}
+        alignItems="center"
+        sx={{ cursor: "text" }}
+        onClick={handleOpen}
+      >
+        <Avatar
+          src={user?.profilePicture || "/images/profile.webp"}
+          alt={user?.name || "User"}
+          sx={{ width: 48, height: 48 }}
+        />
         <TextField
-          placeholder="What's on your mind?"
+          placeholder={`What's on your mind, ${user?.name || "User"}?`}
           fullWidth
           InputProps={{ readOnly: true }}
           sx={{ cursor: "pointer" }}
@@ -55,7 +115,7 @@ const PostForm: React.FC<PostFormProps> = ({ username = "User", profilePic, crea
         <DialogTitle>Create Post</DialogTitle>
         <DialogContent>
           <PostModalContent
-            username={username}
+            username={user?.name || "User"}
             modalContent={modalContent}
             onModalContentChange={setModalContent}
             visibility={visibility}
@@ -70,7 +130,11 @@ const PostForm: React.FC<PostFormProps> = ({ username = "User", profilePic, crea
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleSubmit} variant="contained" disabled={submitting}>
+          <Button
+            onClick={handleSubmit}
+            variant="contained"
+            disabled={submitting}
+          >
             {submitting ? "Posting..." : "Post"}
           </Button>
         </DialogActions>

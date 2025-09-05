@@ -1,7 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { User } from "@/types/user.type";
+
+// Update your User type to include profile and cover pictures
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  profilePicture?: string; // optional
+  coverPicture?: string;   // optional
+}
 
 export const useFetchUser = (userId: string | undefined) => {
   const [user, setUser] = useState<User | null>(null);
@@ -16,9 +24,12 @@ export const useFetchUser = (userId: string | undefined) => {
       setError("");
 
       try {
-        const res = await fetch(`http://localhost:5000/users/${userId}`);
+        const token = localStorage.getItem("token"); // include auth if needed
+        const res = await fetch(`http://localhost:5000/users/${userId}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
         if (!res.ok) throw new Error("Failed to fetch user");
-        const data = await res.json();
+        const data: User = await res.json(); // type cast to include images
         setUser(data);
       } catch (err: any) {
         setError(err.message || "An error occurred");

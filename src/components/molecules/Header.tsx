@@ -9,21 +9,56 @@ import {
   Menu,
   MenuItem,
   IconButton,
+  Avatar,
 } from "@mui/material";
-import AccountCircle from "@mui/icons-material/AccountCircle";
 import { useRouter } from "next/navigation";
 import { UserSearchBar } from "../atoms/UserSearchBar";
+import axios from "axios";
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  profilePicture?: string;
+  coverPicture?: string;
+}
+
+const API_BASE = "http://localhost:5000"; // ✅ adjust if backend URL changes
 
 export const Header: React.FC = () => {
   const router = useRouter();
-  const [userName, setUserName] = useState("User");
+  const [user, setUser] = useState<User | null>(null);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUserName(JSON.parse(storedUser).name);
+  const fetchCurrentUser = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/auth/login");
+      return;
     }
+
+    try {
+      const res = await axios.get<User>(`${API_BASE}/users/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = res.data;
+
+      // Normalize profile picture URL
+      const profilePicture = data.profilePicture
+        ? data.profilePicture.startsWith("http")
+          ? data.profilePicture
+          : `${API_BASE}${data.profilePicture}`
+        : "/images/profile.webp";
+
+      setUser({ ...data, profilePicture });
+    } catch (err) {
+      // fail silently or add error handling UI if needed
+    }
+  };
+
+  useEffect(() => {
+    fetchCurrentUser();
   }, []);
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -64,8 +99,15 @@ export const Header: React.FC = () => {
             aria-haspopup="true"
             sx={{ ml: 2 }}
           >
-            <AccountCircle />
-            <Typography sx={{ ml: 1 }}>{userName}</Typography>
+            <Avatar
+              src={user?.profilePicture || "/images/profile.webp"}
+              alt={user?.name || "User"}
+              sx={{ width: 32, height: 32, mr: 1 }}
+              onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+                e.currentTarget.src = "/images/profile.webp"; // fallback
+              }}
+            />
+            <Typography>{user?.name || "User"}</Typography>
           </IconButton>
 
           <Menu
