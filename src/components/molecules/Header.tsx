@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import AccountCircle from "@mui/icons-material/AccountCircle";
 import { useRouter } from "next/navigation";
+import { UserSearchBar } from "../atoms/UserSearchBar";
 
 export const Header: React.FC = () => {
   const router = useRouter();
@@ -50,17 +51,23 @@ export const Header: React.FC = () => {
           Chatter
         </Typography>
 
-        <Box>
+        <Box sx={{ display: "flex", alignItems: "center" }}>
+          {/* Reusable Search Component */}
+          <UserSearchBar />
+
+          {/* User menu */}
           <IconButton
             size="large"
             color="inherit"
             onClick={handleMenu}
             aria-controls="menu-appbar"
             aria-haspopup="true"
+            sx={{ ml: 2 }}
           >
             <AccountCircle />
             <Typography sx={{ ml: 1 }}>{userName}</Typography>
           </IconButton>
+
           <Menu
             id="menu-appbar"
             anchorEl={anchorEl}

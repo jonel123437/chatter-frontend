@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { InputField } from "@/components/atoms/InputField";
 import { Button } from "@/components/atoms/Button";
-import { Alert, Box, Typography, Paper } from "@mui/material";
+import { Alert, Paper, Typography } from "@mui/material";
 
 interface LoginFormProps {
   onSubmit: (email: string, password: string) => void;
@@ -10,7 +10,11 @@ interface LoginFormProps {
   error?: string;
 }
 
-export const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, loading, error }) => {
+export const LoginForm: React.FC<LoginFormProps> = ({
+  onSubmit,
+  loading,
+  error,
+}) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -20,7 +24,10 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, loading, error }
   };
 
   return (
-    <Paper elevation={3} sx={{ maxWidth: 400, mx: "auto", mt: 8, p: 4, borderRadius: 2 }}>
+    <Paper
+      elevation={3}
+      sx={{ maxWidth: 400, mx: "auto", mt: 8, p: 4, borderRadius: 2 }}
+    >
       <Typography variant="h5" mb={3} align="center">
         Login
       </Typography>
