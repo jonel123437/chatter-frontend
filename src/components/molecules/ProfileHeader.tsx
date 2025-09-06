@@ -1,59 +1,28 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Box, Avatar, Typography, Button } from "@mui/material";
-import axios from "axios";
-
-interface UserImageResponse {
-  id: string;
-  name: string;
-  email: string;
-  profilePicture: string;
-  coverPicture: string;
-  createdAt: string;
-  updatedAt: string;
-  token: string; // JWT token for auth
-}
+import React, { useState } from "react";
+import {
+  Box,
+  Avatar,
+  Typography,
+  Button,
+  Divider,
+  Tabs,
+  Tab,
+  List,
+  ListItem,
+  ListItemAvatar,
+  ListItemText,
+} from "@mui/material";
+import { useCurrentUser } from "../../app/profile/hooks/useCurrentUser";
 
 interface ProfileHeaderProps {
-  token: string; // JWT token for auth
+  token: string;
 }
 
-const API_BASE = "http://localhost:5000"; // ✅ Adjust if backend runs elsewhere
-
 export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ token }) => {
-  const [user, setUser] = useState<UserImageResponse | null>(null);
-
-  // Ensure image URLs are absolute
-  const resolveImageUrl = (url?: string) => {
-    if (!url) return undefined;
-    if (url.startsWith("http")) return url; // already absolute
-    return `${API_BASE}${url.startsWith("/") ? url : `/${url}`}`;
-  };
-
-  // Fetch current user
-  const fetchCurrentUser = async () => {
-    try {
-      const res = await axios.get<UserImageResponse>(`${API_BASE}/users/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const data = res.data;
-
-      // Normalize URLs
-      setUser({
-        ...data,
-        profilePicture: resolveImageUrl(data.profilePicture) || "/images/profile.webp",
-        coverPicture: resolveImageUrl(data.coverPicture) || "/images/cover.webp",
-      });
-    } catch {
-      // silence error logs
-    }
-  };
-
-  useEffect(() => {
-    fetchCurrentUser();
-  }, [token]);
+  const { user, friendsList, pendingUsers, handleAcceptRequest, handleUnfriend, fetchCurrentUser } = useCurrentUser(token);
+  const [tabValue, setTabValue] = useState(0);
 
   const handleFileUpload = async (file: File, type: "profile" | "cover") => {
     const formData = new FormData();
@@ -62,27 +31,25 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ token }) => {
     try {
       const endpoint =
         type === "profile"
-          ? `${API_BASE}/users/upload-profile`
-          : `${API_BASE}/users/upload-cover`;
+          ? "http://localhost:5000/users/upload-profile"
+          : "http://localhost:5000/users/upload-cover";
 
-      await axios.patch(endpoint, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
+      await fetch(endpoint, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
       });
 
-      // Refresh user info after upload
       await fetchCurrentUser();
-    } catch {
-      // silence error logs
+    } catch (err) {
+      console.error("Failed to upload image:", err);
     }
   };
 
   if (!user) return null;
 
   return (
-    <Box sx={{ mb: 4 }}>
+    <Box sx={{ mb: -2 }}>
       {/* Cover photo */}
       <Box
         sx={{
@@ -91,7 +58,6 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ token }) => {
           backgroundImage: `url(${user.coverPicture})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
-          borderRadius: 2,
           mb: -8,
           position: "relative",
         }}
@@ -129,7 +95,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ token }) => {
           alt={user.name}
           sx={{ width: 120, height: 120, border: "4px solid white", mb: 2 }}
           onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-            e.currentTarget.src = "/images/profile.webp"; // fallback
+            e.currentTarget.src = "/images/profile.webp";
           }}
         />
 
@@ -153,9 +119,67 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ token }) => {
         <Typography variant="h5" sx={{ fontWeight: 600 }}>
           {user.name}
         </Typography>
-        <Typography variant="subtitle1" color="text.secondary">
-          {user.email}
-        </Typography>
+
+        <Divider sx={{ width: "100%", mb: 2, pt: 5 }} />
+
+        <Tabs
+          value={tabValue}
+          onChange={(e, newValue) => setTabValue(newValue)}
+          centered
+        >
+          <Tab label="Posts" />
+          <Tab label="About" />
+          <Tab label="Friends" />
+        </Tabs>
+
+        {/* Friends Tab */}
+        {tabValue === 2 && (
+          <Box sx={{ mt: 3, width: "100%" }}>
+            <Typography variant="h6" sx={{ mb: 1 }}>
+              Friends ({friendsList.length})
+            </Typography>
+            <List>
+              {friendsList.map((friend) => (
+                <ListItem key={friend.id}>
+                  <ListItemAvatar>
+                    <Avatar src={friend.profilePicture}>{friend.name[0]}</Avatar>
+                  </ListItemAvatar>
+                  <ListItemText primary={friend.name} />
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    color="error"
+                    onClick={() => handleUnfriend(friend.id)}
+                  >
+                    Unfriend
+                  </Button>
+                </ListItem>
+              ))}
+            </List>
+
+            <Typography variant="h6" sx={{ mt: 3, mb: 1 }}>
+              Pending Requests ({pendingUsers.length})
+            </Typography>
+            <List>
+              {pendingUsers.map((request) => (
+                <ListItem key={request.id}>
+                  <ListItemAvatar>
+                    <Avatar src={request.profilePicture}>{request.name[0]}</Avatar>
+                  </ListItemAvatar>
+                  <ListItemText primary={request.name} />
+                  <Button
+                    variant="contained"
+                    size="small"
+                    color="primary"
+                    onClick={() => handleAcceptRequest(request.id)}
+                  >
+                    Accept
+                  </Button>
+                </ListItem>
+              ))}
+            </List>
+          </Box>
+        )}
       </Box>
     </Box>
   );

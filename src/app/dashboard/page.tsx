@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Container, Box } from "@mui/material";
+import { Box } from "@mui/material";
 import PostForm from "@/components/molecules/PostForm";
 import { Header } from "@/components/molecules/Header";
 import PostsList from "@/components/organisms/PostsList";
@@ -13,30 +13,34 @@ export default function DashboardPage() {
   const { posts, loading, error, fetchPosts } = useFetchPublicPosts();
   const [mounted, setMounted] = useState(false);
 
-  // Prevent hydration issues
   useEffect(() => {
     setMounted(true);
   }, []);
 
   const handlePostCreated = async () => {
-    await fetchPosts(); // refresh public posts
+    await fetchPosts();
   };
 
-  if (!mounted) return null; // render only on client
+  if (!mounted) return null;
 
   return (
-    <>
+    <Box sx={{ bgcolor: "grey.100", minHeight: "100vh", width: "100%" }}>
       <Header />
 
-      <Container maxWidth="sm" sx={{ mt: 4, display: "flex", flexDirection: "column", gap: 4 }}>
-        {/* Post creation box */}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 4,
+          width: "100%",
+        }}
+      >
+        {/* Post Form */}
         <Box
           sx={{
             p: 2,
-            border: "1px solid #ccc",
-            borderRadius: 2,
+            bgcolor: "background.paper",
             boxShadow: 1,
-            backgroundColor: "#fff",
           }}
         >
           <PostForm
@@ -46,24 +50,20 @@ export default function DashboardPage() {
             }}
             onPostCreated={handlePostCreated}
           />
-
           {creating && <p>Posting...</p>}
           {createError && <p style={{ color: "red" }}>{createError}</p>}
         </Box>
 
-        {/* Posts list box */}
+        {/* Posts List */}
         <Box
           sx={{
             p: 2,
-            border: "1px solid #ccc",
-            borderRadius: 2,
-            boxShadow: 1,
-            backgroundColor: "#f9f9f9",
+            bgcolor: "background.paper",
           }}
         >
           <PostsList posts={posts} loading={loading} error={error} />
         </Box>
-      </Container>
-    </>
+      </Box>
+    </Box>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Box, Paper } from "@mui/material";
+import { Box } from "@mui/material";
 import { Header } from "../../components/molecules/Header";
 import PostForm from "../../components/molecules/PostForm";
 import PostsList from "../../components/organisms/PostsList";
@@ -33,20 +33,40 @@ export default function ProfilePage() {
   if (!token) return null;
 
   return (
-    <Box>
+    <Box sx={{ bgcolor: "grey.100", minHeight: "100vh" }}>
       <Header />
 
-      <Box sx={{ p: 4, display: "flex", flexDirection: "column", gap: 4 }}>
-        {/* Profile Header */}
-        <ProfileHeader token={token} />
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 4, pb: 4 }}>
+        {/* Profile Header - no border radius */}
+        <Box
+          sx={{
+            bgcolor: "background.paper",
+            boxShadow: 1,
+          }}
+        >
+          <ProfileHeader token={token} />
+        </Box>
 
-        <Paper elevation={1} sx={{ p: 2, borderRadius: 2 }}>
+        {/* Post Form - with padding and rounded corners */}
+        <Box
+          sx={{
+            p: 2,
+            bgcolor: "background.paper",
+            boxShadow: 1,
+          }}
+        >
           <PostForm createPost={createPost} onPostCreated={() => fetchPosts()} />
-        </Paper>
+        </Box>
 
-        <Paper elevation={1} sx={{ p: 2, borderRadius: 2 }}>
+        {/* Posts List - with padding and rounded corners */}
+        <Box
+          sx={{
+            p: 2,
+            bgcolor: "background.paper",
+          }}
+        >
           <PostsList posts={posts} loading={loading} error={error} />
-        </Paper>
+        </Box>
       </Box>
     </Box>
   );

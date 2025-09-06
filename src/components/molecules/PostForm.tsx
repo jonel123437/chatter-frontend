@@ -10,6 +10,8 @@ import {
   Avatar,
   TextField,
   Stack,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import { Post } from "@/app/profile/hooks/useFetchUserPosts";
 import { PostModalContent } from "./PostModalContent";
@@ -41,14 +43,15 @@ const PostForm: React.FC<PostFormProps> = ({ createPost, onPostCreated }) => {
 
   const [user, setUser] = useState<StoredUser | null>(null);
 
+  const theme = useTheme();
+  const isXs = useMediaQuery(theme.breakpoints.down("sm")); // xs and below
+
   useEffect(() => {
     const raw = localStorage.getItem("user");
-    console.log("Raw user from localStorage:", raw);
 
     if (raw) {
       try {
         const parsed: StoredUser = JSON.parse(raw);
-        console.log("Parsed user object:", parsed);
 
         const profileUrl = parsed.profilePicture
           ? parsed.profilePicture.startsWith("http")
@@ -59,12 +62,9 @@ const PostForm: React.FC<PostFormProps> = ({ createPost, onPostCreated }) => {
           : "/images/profile.webp";
 
         const fullUser = { ...parsed, profilePicture: profileUrl };
-
-        console.log("Final user state:", fullUser);
-
         setUser(fullUser);
-      } catch (err) {
-        console.error("Error parsing user from localStorage:", err);
+      } catch {
+        // fail silently if parsing fails
       }
     }
   }, []);
@@ -92,6 +92,7 @@ const PostForm: React.FC<PostFormProps> = ({ createPost, onPostCreated }) => {
       {/* Profile and input inline using Stack */}
       <Stack
         direction="row"
+        padding={1}
         spacing={2}
         alignItems="center"
         sx={{ cursor: "text" }}
@@ -103,7 +104,11 @@ const PostForm: React.FC<PostFormProps> = ({ createPost, onPostCreated }) => {
           sx={{ width: 48, height: 48 }}
         />
         <TextField
-          placeholder={`What's on your mind, ${user?.name || "User"}?`}
+          placeholder={
+            isXs
+              ? "What's on your mind? ..."
+              : `What's on your mind, ${user?.name || "User"}?`
+          }
           fullWidth
           InputProps={{ readOnly: true }}
           sx={{ cursor: "pointer" }}
