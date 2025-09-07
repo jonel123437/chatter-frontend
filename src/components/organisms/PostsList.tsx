@@ -68,7 +68,6 @@ const PostsList: React.FC<PostsListProps> = ({ posts, loading, error }) => {
               border: "1px solid #ccc",
               borderRadius: 2,
               p: 2,
-              boxShadow: 1,
               backgroundColor: "#fff",
             }}
           >
