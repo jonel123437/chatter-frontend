@@ -5,6 +5,7 @@ import { Box } from "@mui/material";
 import { AboutTab } from "./AboutTab";
 import { FriendsTab } from "./FriendsTab";
 import { Post } from "../../types/post.type";
+import { useRouter } from "next/navigation";
 
 interface ProfileContentProps {
   tabValue: number;
@@ -28,17 +29,26 @@ export const ProfileContent: React.FC<ProfileContentProps> = ({
   pendingUsers = [],
   handleAcceptRequest,
   handleUnfriend,
-}) => (
-  <Box sx={{ width: "100%" }}>
-    {tabValue === 1 && <AboutTab />}
+}) => {
+  const router = useRouter();
 
-    {tabValue === 2 && (
-      <FriendsTab
-        friendsList={friendsList}
-        pendingUsers={pendingUsers}
-        handleAcceptRequest={handleAcceptRequest!}
-        handleUnfriend={handleUnfriend!}
-      />
-    )}
-  </Box>
-);
+  const goToProfile = (userId: string) => {
+    router.push(`/users/${userId}`);
+  };
+
+  return (
+    <Box sx={{ width: "100%" }}>
+      {tabValue === 1 && <AboutTab />}
+
+      {tabValue === 2 && (
+        <FriendsTab
+          friendsList={friendsList}
+          pendingUsers={pendingUsers}
+          handleAcceptRequest={handleAcceptRequest!}
+          handleUnfriend={handleUnfriend!}
+          goToProfile={goToProfile} // ✅ pass navigation function
+        />
+      )}
+    </Box>
+  );
+};

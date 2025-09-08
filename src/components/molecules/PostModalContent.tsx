@@ -4,17 +4,9 @@ import React from "react";
 import { Box, Typography, Menu, MenuItem, Button } from "@mui/material";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { InputField } from "../atoms/InputField";
+import { PostModalContentProps } from "@/types/post.type";
 
-export interface PostModalContentProps {
-  username: string;
-  modalContent: string;
-  onModalContentChange: (val: string) => void;
-  visibility: "public" | "friends" | "only_me";
-  anchorEl: HTMLElement | null;
-  onVisibilityClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
-  onVisibilitySelect: (value: "public" | "friends" | "only_me") => void;
-  onVisibilityMenuClose?: () => void;
-}
+
 
 export const PostModalContent: React.FC<PostModalContentProps> = ({
   username,

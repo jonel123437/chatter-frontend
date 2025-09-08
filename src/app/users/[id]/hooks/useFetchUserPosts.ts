@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Post } from "@/types/post.type";
+import type { Post } from "@/types/post.type";
+
+const API_BASE = "http://localhost:5000";
 
 export const useFetchUserPosts = (userId: string | undefined) => {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -14,15 +16,12 @@ export const useFetchUserPosts = (userId: string | undefined) => {
     const fetchPosts = async () => {
       setLoading(true);
       setError("");
-
       try {
-        const token = localStorage.getItem("token"); // get the JWT token
+        const token = localStorage.getItem("token");
         if (!token) throw new Error("User not authenticated");
 
-        const res = await fetch(`http://localhost:5000/posts/${userId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`, // attach token
-          },
+        const res = await fetch(`${API_BASE}/posts/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         if (!res.ok) {
@@ -42,5 +41,5 @@ export const useFetchUserPosts = (userId: string | undefined) => {
     fetchPosts();
   }, [userId]);
 
-  return { posts, loading, error };
+  return { posts, setPosts, loading, error };
 };

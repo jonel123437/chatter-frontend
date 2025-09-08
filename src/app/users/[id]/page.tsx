@@ -2,14 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import {
-  Box,
-  CircularProgress,
-  Typography,
-  Divider,
-  Tabs,
-  Tab,
-} from "@mui/material";
+import { Box, CircularProgress, Typography } from "@mui/material";
 import { Header } from "@/components/molecules/Header";
 import { PublicProfileHeader } from "@/components/molecules/PublicProfileHeader";
 import { useFetchUserPosts } from "./hooks/useFetchUserPosts";
@@ -19,9 +12,6 @@ const UserProfilePage: React.FC = () => {
   const { id } = useParams();
   const userId = Array.isArray(id) ? id[0] : id ?? "";
 
-  const { posts, loading: postsLoading, error: postsError } =
-    useFetchUserPosts(userId);
-
   const [token, setToken] = useState<string | null>(null);
   const [tabValue, setTabValue] = useState(0);
 
@@ -30,27 +20,33 @@ const UserProfilePage: React.FC = () => {
     setToken(storedToken);
   }, []);
 
-  if (!userId) return null;
-  if (!token) return null;
+  const { posts, loading: postsLoading, error: postsError } = useFetchUserPosts(userId);
+
+  if (!userId || !token) return <CircularProgress />;
 
   return (
-    <Box sx={{ bgcolor: "grey.100", minHeight: "100vh" }}>
+    <Box sx={{ bgcolor: "grey.100", minHeight: "100vh", pb: 5 }}>
       <Header />
 
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 4, pb: 4 }}>
-        {/* Public Profile Header - no border radius */}
-        <Box sx={{ bgcolor: "background.paper", boxShadow: 1 }}>
+      {/* Centered Content */}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 3,
+          width: "100%",
+          maxWidth: 1100, 
+          mx: "auto", 
+        }}
+      >
+        {/* Public Profile Header */}
+        <Box sx={{ bgcolor: "background.paper", boxShadow: 1, borderRadius: 2 }}>
           <PublicProfileHeader userId={userId} token={token} />
         </Box>
 
         {/* Tab Content */}
         {tabValue === 0 && (
-          <Box
-            sx={{
-              p: 2,
-              bgcolor: "background.paper",
-            }}
-          >
+          <Box sx={{ p: 2, bgcolor: "background.paper", boxShadow: 1, borderRadius: 2 }}>
             {postsLoading && <CircularProgress />}
             {postsError && <Typography color="error">{postsError}</Typography>}
             {!postsLoading && !postsError && <PostsList posts={posts} />}
@@ -58,15 +54,17 @@ const UserProfilePage: React.FC = () => {
         )}
 
         {tabValue === 1 && (
-          <Box
-            sx={{
-              p: 2,
-              bgcolor: "background.paper",
-            }}
-          >
+          <Box sx={{ p: 2, bgcolor: "background.paper", boxShadow: 1 }}>
             <Typography variant="body1">
-              {/* Replace this with the user's "About" info */}
               About information goes here.
+            </Typography>
+          </Box>
+        )}
+
+        {tabValue === 2 && (
+          <Box sx={{ p: 2, bgcolor: "background.paper", boxShadow: 1 }}>
+            <Typography variant="body1">
+              Friends information goes here.
             </Typography>
           </Box>
         )}

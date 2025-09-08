@@ -5,15 +5,7 @@ import { Box, Typography, Avatar } from "@mui/material";
 import PublicIcon from "@mui/icons-material/Public";
 import PeopleIcon from "@mui/icons-material/People";
 import LockIcon from "@mui/icons-material/Lock";
-
-export interface Post {
-  _id: string;
-  content: string;
-  visibility: "public" | "friends" | "only_me";
-  authorId: { _id: string; name: string; avatarUrl?: string } | string;
-  createdAt: string;
-  updatedAt: string;
-}
+import { Post } from "@/types/post.type";
 
 interface PostsListProps {
   posts: Post[];
@@ -51,24 +43,30 @@ const PostsList: React.FC<PostsListProps> = ({ posts, loading, error }) => {
   if (!posts || posts.length === 0) return <Typography>No posts yet.</Typography>;
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-      {posts.map((post) => {
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+      {posts.map((post, index) => {
         const author =
           typeof post.authorId === "object" && post.authorId !== null
             ? {
                 name: post.authorId.name,
-                avatarUrl: post.authorId.avatarUrl || "/static/avatar.png",
+                avatarUrl: post.authorId.profilePicture
+                  ? post.authorId.profilePicture.startsWith("http")
+                    ? post.authorId.profilePicture
+                    : `${process.env.NEXT_PUBLIC_API_BASE_URL || ""}${post.authorId.profilePicture}`
+                  : "/static/avatar.png",
               }
             : { name: "Unknown", avatarUrl: "/static/avatar.png" };
 
         return (
           <Box
-            key={post._id}
+            key={`${post._id}-${index}`} // ✅ always unique
             sx={{
-              border: "1px solid #ccc",
-              borderRadius: 2,
-              p: 2,
+              borderRadius: 3,
+              boxShadow: "0 2px 6px rgba(0,0,0,0.12)",
               backgroundColor: "#fff",
+              p: 2,
+              display: "flex",
+              flexDirection: "column",
             }}
           >
             {/* Header */}
@@ -78,8 +76,15 @@ const PostsList: React.FC<PostsListProps> = ({ posts, loading, error }) => {
               </Avatar>
               <Box sx={{ flexGrow: 1 }}>
                 <Typography sx={{ fontWeight: 600 }}>{author.name}</Typography>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <Typography variant="caption" color="textSecondary">
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                    color: "text.secondary",
+                  }}
+                >
+                  <Typography variant="caption">
                     {timeAgo(post.createdAt)}
                   </Typography>
                   {getVisibilityIcon(post.visibility)}
@@ -88,10 +93,13 @@ const PostsList: React.FC<PostsListProps> = ({ posts, loading, error }) => {
             </Box>
 
             {/* Post content */}
-            <Typography sx={{ wordBreak: "break-word" }}>{post.content}</Typography>
+            <Typography sx={{ wordBreak: "break-word", mb: 1 }}>
+              {post.content}
+            </Typography>
           </Box>
         );
       })}
+
     </Box>
   );
 };

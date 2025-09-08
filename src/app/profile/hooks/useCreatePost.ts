@@ -1,7 +1,7 @@
 "use client";
 
 import axios from "axios";
-import { Post } from "./useFetchUserPosts";
+import { Post } from "@/types/post.type";
 
 interface UseCreatePostProps {
   onPostCreated?: (newPost: Post) => void;

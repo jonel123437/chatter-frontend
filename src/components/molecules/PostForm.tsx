@@ -13,15 +13,9 @@ import {
   useTheme,
   useMediaQuery,
 } from "@mui/material";
-import { Post } from "@/app/profile/hooks/useFetchUserPosts";
+import axios from "axios";
+import { Post } from "@/types/post.type";
 import { PostModalContent } from "./PostModalContent";
-
-interface StoredUser {
-  id: string;
-  name: string;
-  email: string;
-  profilePicture?: string;
-}
 
 interface PostFormProps {
   createPost: (
@@ -29,6 +23,13 @@ interface PostFormProps {
     visibility: "public" | "friends" | "only_me"
   ) => Promise<Post>;
   onPostCreated?: (newPost: Post) => void;
+}
+
+interface ApiUser {
+  id: string;
+  name: string;
+  email: string;
+  profilePicture?: string;
 }
 
 const API_BASE = "http://localhost:5000";
@@ -41,38 +42,44 @@ const PostForm: React.FC<PostFormProps> = ({ createPost, onPostCreated }) => {
     useState<"public" | "friends" | "only_me">("public");
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
-  const [user, setUser] = useState<StoredUser | null>(null);
+  const [user, setUser] = useState<ApiUser | null>(null);
 
   const theme = useTheme();
-  const isXs = useMediaQuery(theme.breakpoints.down("sm")); // xs and below
+  const isXs = useMediaQuery(theme.breakpoints.down("sm"));
 
   useEffect(() => {
-    const raw = localStorage.getItem("user");
+    const token = localStorage.getItem("token"); // still need token to auth API
+    if (!token) return;
 
-    if (raw) {
+    const fetchUser = async () => {
       try {
-        const parsed: StoredUser = JSON.parse(raw);
+        const res = await axios.get<ApiUser>(`${API_BASE}/users/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-        const profileUrl = parsed.profilePicture
-          ? parsed.profilePicture.startsWith("http")
-            ? parsed.profilePicture
+        const profileUrl = res.data.profilePicture
+          ? res.data.profilePicture.startsWith("http")
+            ? res.data.profilePicture
             : `${API_BASE}${
-                parsed.profilePicture.startsWith("/") ? "" : "/"
-              }${parsed.profilePicture}`
+                res.data.profilePicture.startsWith("/") ? "" : "/"
+              }${res.data.profilePicture}`
           : "/images/profile.webp";
 
-        const fullUser = { ...parsed, profilePicture: profileUrl };
-        setUser(fullUser);
-      } catch {
-        // fail silently if parsing fails
+        setUser({ ...res.data, profilePicture: profileUrl });
+      } catch (err) {
+        console.error("Failed to fetch current user:", err);
       }
-    }
+    };
+
+    fetchUser();
   }, []);
 
   const handleOpen = () => setModalOpen(true);
   const handleClose = () => {
     setModalOpen(false);
     setAnchorEl(null);
+    setModalContent("");  
+    setVisibility("public"); 
   };
 
   const handleSubmit = async () => {
@@ -89,7 +96,7 @@ const PostForm: React.FC<PostFormProps> = ({ createPost, onPostCreated }) => {
 
   return (
     <>
-      {/* Profile and input inline using Stack */}
+      {/* Profile + Input */}
       <Stack
         direction="row"
         padding={1}

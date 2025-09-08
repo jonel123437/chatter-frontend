@@ -1,156 +1,126 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Box,
   Avatar,
   Typography,
-  Button,
   Divider,
   Tabs,
   Tab,
+  Dialog,
+  Button,
 } from "@mui/material";
-import axios from "axios";
-import type { UserImageResponse } from "../../types/user.type";
-
-interface PublicUserResponse {
-  id: string;
-  name: string;
-  email: string;
-  profilePicture?: string;
-  coverPicture?: string;
-  createdAt: string;
-  updatedAt: string;
-  friends?: string[];
-  friendRequests?: string[];
-}
+import { usePublicProfile } from "../../app/users/[id]/hooks/usePublicProfile";
 
 interface PublicProfileHeaderProps {
   userId: string;
   token: string;
 }
 
-const API_BASE = "http://localhost:5000";
-
 export const PublicProfileHeader: React.FC<PublicProfileHeaderProps> = ({
   userId,
   token,
 }) => {
-  const [user, setUser] = useState<PublicUserResponse | null>(null);
+  const { user, currentUser, isRequestSent, handleSendFriendRequest } =
+    usePublicProfile(userId, token);
   const [tabValue, setTabValue] = useState(0);
-  const [isRequestSent, setIsRequestSent] = useState(false);
-  const [currentUser, setCurrentUser] = useState<UserImageResponse | null>(null);
 
-  const resolveImageUrl = (url?: string) =>
-    url ? (url.startsWith("http") ? url : `${API_BASE}${url.startsWith("/") ? url : `/${url}`}`) : undefined;
-
-  const fetchCurrentUser = async () => {
-    try {
-      const res = await axios.get<UserImageResponse>(`${API_BASE}/users/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setCurrentUser(res.data);
-    } catch (err) {
-      console.error("Error fetching current user:", err);
-    }
-  };
-
-  const fetchUserById = async () => {
-    try {
-      const res = await axios.get<PublicUserResponse>(`${API_BASE}/users/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = res.data;
-      setUser({
-        ...data,
-        profilePicture: resolveImageUrl(data.profilePicture) || "/images/profile.webp",
-        coverPicture: resolveImageUrl(data.coverPicture) || "/images/cover.webp",
-      });
-
-      if (currentUser) {
-        const alreadyFriend = data.friends?.includes(currentUser.id);
-        const requestSent = data.friendRequests?.includes(currentUser.id);
-        setIsRequestSent(!!alreadyFriend || !!requestSent);
-      }
-    } catch (err) {
-      console.error("Error fetching user:", err);
-    }
-  };
-
-  const handleSendFriendRequest = async () => {
-    try {
-      const res = await axios.post<PublicUserResponse>(
-        `${API_BASE}/users/send-request`,
-        { friendId: userId },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      const updatedUser = res.data;
-      setUser({
-        ...updatedUser,
-        profilePicture: resolveImageUrl(updatedUser.profilePicture) || "/images/profile.webp",
-        coverPicture: resolveImageUrl(updatedUser.coverPicture) || "/images/cover.webp",
-      });
-
-      setIsRequestSent(true);
-    } catch (err) {
-      console.error("Failed to send friend request:", err);
-    }
-  };
-
-  useEffect(() => {
-    if (userId && token) fetchCurrentUser();
-  }, [userId, token]);
-
-  useEffect(() => {
-    if (currentUser) fetchUserById();
-  }, [currentUser, userId]);
+  // Modal state
+  const [openImage, setOpenImage] = useState(false);
+  const [selectedType, setSelectedType] = useState<"profile" | "cover" | null>(
+    null
+  );
 
   if (!user) return null;
 
   const isFriend = currentUser?.friends?.includes(user.id);
 
   return (
-    <Box sx={{ mb: -2 }}>
-      {/* Cover photo */}
+    <Box>
+      {/* Cover */}
       <Box
         sx={{
           width: "100%",
-          height: 200,
+          height: { xs: 220, sm: 280 },
           backgroundImage: `url(${user.coverPicture})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
           borderRadius: 2,
           mb: -8,
+          position: "relative",
+          cursor: "pointer",
+          overflow: "hidden",
+          "&:hover .coverOverlay": {
+            opacity: 1,
+          },
         }}
-      />
+        onClick={() => {
+          setSelectedType("cover");
+          setOpenImage(true);
+        }}
+      >
+        {/* Hover overlay */}
+        <Box
+          className="coverOverlay"
+          sx={{
+            position: "absolute",
+            inset: 0,
+            backgroundColor: "rgba(0,0,0,0.2)",
+            opacity: 0,
+            transition: "opacity 0.3s ease-in-out",
+            pointerEvents: "none",
+          }}
+        />
+      </Box>
 
-      {/* Avatar & user info */}
-      <Box sx={{ display: "flex", alignItems: "center", flexDirection: "column", mb: 2 }}>
+      {/* Avatar & Name */}
+      <Box
+        sx={{
+          mt: -10,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          position: "relative",
+          mb: -0.1,
+        }}
+      >
         <Avatar
           src={user.profilePicture}
           alt={user.name}
-          sx={{ width: 120, height: 120, border: "4px solid white", mb: 2 }}
-          onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/images/profile.webp"; }}
+          sx={{
+            width: { xs: 140, sm: 160 },
+            height: { xs: 140, sm: 160 },
+            border: "4px solid white",
+            mb: 2,
+            cursor: "pointer",
+          }}
+          onClick={() => {
+            setSelectedType("profile");
+            setOpenImage(true);
+          }}
+          imgProps={{
+            onError: (e) =>
+              ((e.currentTarget as HTMLImageElement).src =
+                "/images/profile.webp"),
+          }}
         />
 
         <Typography variant="h5" sx={{ fontWeight: 600, mb: 1 }}>
           {user.name}
         </Typography>
 
-        {/* Show if already friend */}
+        {/* Friend status / button */}
         {isFriend && (
           <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
             You are now friends
           </Typography>
         )}
-
-        {/* Add Friend Button */}
         {!isFriend && (
           <Button
-            variant="contained"
-            size="small"
+            variant={isRequestSent ? "outlined" : "contained"}
             color={isRequestSent ? "success" : "primary"}
+            size="small"
             onClick={handleSendFriendRequest}
             disabled={isRequestSent}
             sx={{ mb: 2 }}
@@ -161,12 +131,36 @@ export const PublicProfileHeader: React.FC<PublicProfileHeaderProps> = ({
 
         <Divider sx={{ width: "100%", mb: 2, pt: 5 }} />
 
-        <Tabs value={tabValue} onChange={(e, newValue) => setTabValue(newValue)} centered>
+        {/* Tabs */}
+        <Tabs
+          value={tabValue}
+          onChange={(e, newValue) => setTabValue(newValue)}
+          centered
+        >
           <Tab label="Posts" />
           <Tab label="About" />
           <Tab label="Friends" />
         </Tabs>
       </Box>
+
+      {/* Image Viewer */}
+      <Dialog
+        open={openImage}
+        onClose={() => setOpenImage(false)}
+        TransitionProps={{
+          onExited: () => setSelectedType(null),
+        }}
+      >
+        <img
+          src={
+            selectedType === "profile"
+              ? user.profilePicture
+              : user.coverPicture
+          }
+          alt="Preview"
+          style={{ maxWidth: "100%", maxHeight: "80vh" }}
+        />
+      </Dialog>
     </Box>
   );
 };

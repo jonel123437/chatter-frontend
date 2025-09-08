@@ -7,6 +7,7 @@ interface FriendsTabProps {
   pendingUsers: any[];
   handleAcceptRequest: (id: string) => void;
   handleUnfriend: (id: string) => void;
+  goToProfile: (id: string) => void; // new
 }
 
 export const FriendsTab: React.FC<FriendsTabProps> = ({
@@ -14,6 +15,7 @@ export const FriendsTab: React.FC<FriendsTabProps> = ({
   pendingUsers,
   handleAcceptRequest,
   handleUnfriend,
+  goToProfile,
 }) => (
   <Box sx={{ mt: 3, width: "100%" }}>
     <Typography variant="h6" sx={{ mb: 1 }}>
@@ -27,6 +29,7 @@ export const FriendsTab: React.FC<FriendsTabProps> = ({
           name={friend.name}
           profilePicture={friend.profilePicture}
           onUnfriend={handleUnfriend}
+          onClick={() => goToProfile(friend.id)} // ✅ navigate on click
         />
       ))}
     </List>
@@ -43,6 +46,7 @@ export const FriendsTab: React.FC<FriendsTabProps> = ({
           profilePicture={request.profilePicture}
           isPending
           onAccept={handleAcceptRequest}
+          onClick={() => goToProfile(request.id)} // ✅ navigate on click
         />
       ))}
     </List>
