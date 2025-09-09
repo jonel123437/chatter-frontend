@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import {
   Box,
   Avatar,
@@ -16,19 +16,22 @@ import { usePublicProfile } from "../../app/users/[id]/hooks/usePublicProfile";
 interface PublicProfileHeaderProps {
   userId: string;
   token: string;
+  tabValue: number; // <- receive tabValue from parent
+  setTabValue: (value: number) => void; // <- receive setter from parent
 }
 
 export const PublicProfileHeader: React.FC<PublicProfileHeaderProps> = ({
   userId,
   token,
+  tabValue,
+  setTabValue,
 }) => {
   const { user, currentUser, isRequestSent, handleSendFriendRequest } =
     usePublicProfile(userId, token);
-  const [tabValue, setTabValue] = useState(0);
 
   // Modal state
-  const [openImage, setOpenImage] = useState(false);
-  const [selectedType, setSelectedType] = useState<"profile" | "cover" | null>(
+  const [openImage, setOpenImage] = React.useState(false);
+  const [selectedType, setSelectedType] = React.useState<"profile" | "cover" | null>(
     null
   );
 
@@ -51,16 +54,13 @@ export const PublicProfileHeader: React.FC<PublicProfileHeaderProps> = ({
           position: "relative",
           cursor: "pointer",
           overflow: "hidden",
-          "&:hover .coverOverlay": {
-            opacity: 1,
-          },
+          "&:hover .coverOverlay": { opacity: 1 },
         }}
         onClick={() => {
           setSelectedType("cover");
           setOpenImage(true);
         }}
       >
-        {/* Hover overlay */}
         <Box
           className="coverOverlay"
           sx={{
@@ -101,8 +101,7 @@ export const PublicProfileHeader: React.FC<PublicProfileHeaderProps> = ({
           }}
           imgProps={{
             onError: (e) =>
-              ((e.currentTarget as HTMLImageElement).src =
-                "/images/profile.webp"),
+              ((e.currentTarget as HTMLImageElement).src = "/images/profile.webp"),
           }}
         />
 
@@ -132,11 +131,7 @@ export const PublicProfileHeader: React.FC<PublicProfileHeaderProps> = ({
         <Divider sx={{ width: "100%", mb: 2, pt: 5 }} />
 
         {/* Tabs */}
-        <Tabs
-          value={tabValue}
-          onChange={(e, newValue) => setTabValue(newValue)}
-          centered
-        >
+        <Tabs value={tabValue} onChange={(e, newValue) => setTabValue(newValue)} centered>
           <Tab label="Posts" />
           <Tab label="About" />
           <Tab label="Friends" />
@@ -152,11 +147,7 @@ export const PublicProfileHeader: React.FC<PublicProfileHeaderProps> = ({
         }}
       >
         <img
-          src={
-            selectedType === "profile"
-              ? user.profilePicture
-              : user.coverPicture
-          }
+          src={selectedType === "profile" ? user.profilePicture : user.coverPicture}
           alt="Preview"
           style={{ maxWidth: "100%", maxHeight: "80vh" }}
         />

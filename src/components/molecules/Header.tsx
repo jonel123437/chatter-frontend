@@ -13,6 +13,8 @@ import {
   useTheme,
   useMediaQuery,
   Collapse,
+  Paper,
+  InputBase,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
 import SearchIcon from "@mui/icons-material/Search";
@@ -54,7 +56,9 @@ export const Header: React.FC = () => {
           : `${API_BASE}${data.profilePicture}`
         : "/images/profile.webp";
       setUser({ ...data, profilePicture });
-    } catch {}
+    } catch {
+      console.error("Failed to fetch current user");
+    }
   };
 
   useEffect(() => {
@@ -65,32 +69,22 @@ export const Header: React.FC = () => {
   const handleClose = () => setAnchorEl(null);
   const handleLogout = () => {
     localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    localStorage.removeItem("currentUser");
     router.push("/auth/login");
   };
 
   return (
-    <AppBar position="static">
-      <Toolbar sx={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap" }}>
-        {/* Mobile: C logo + slide-in search */}
+    <AppBar position="static" sx={{ background: "linear-gradient(90deg, #4A90E2, #357ABD)", boxShadow: 3 }}>
+      <Toolbar sx={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 1 }}>
+        {/* Left: Logo + Search */}
         {isMobile ? (
           <Box sx={{ display: "flex", alignItems: "center", gap: 2, flexGrow: 1 }}>
-            <Typography
-              variant="h6"
-              sx={{ cursor: "pointer" }}
-              onClick={() => router.push("/dashboard")}
-            >
+            <Typography variant="h6" sx={{ cursor: "pointer", fontWeight: "bold" }} onClick={() => router.push("/dashboard")}>
               C
             </Typography>
-
-            <Collapse in={showMobileSearch} orientation="horizontal">
-              {showMobileSearch && (
-                <Box sx={{ flexGrow: 1 }}>
-                  <UserSearchBar isMobile onClose={() => setShowMobileSearch(false)} />
-                </Box>
-              )}
+            <Collapse in={showMobileSearch} orientation="horizontal" sx={{ flexGrow: 1 }}>
+              {showMobileSearch && <UserSearchBar isMobile onClose={() => setShowMobileSearch(false)} />}
             </Collapse>
-
             {!showMobileSearch && (
               <IconButton
                 onClick={() => setShowMobileSearch(true)}
@@ -100,6 +94,7 @@ export const Header: React.FC = () => {
                   color: "black",
                   p: 1,
                   boxShadow: 1,
+                  "&:hover": { transform: "scale(1.1)", bgcolor: "grey.200" },
                 }}
               >
                 <SearchIcon fontSize="small" />
@@ -107,53 +102,54 @@ export const Header: React.FC = () => {
             )}
           </Box>
         ) : (
-          <>
-            <Typography
-              variant="h6"
-              sx={{ cursor: "pointer" }}
-              onClick={() => router.push("/dashboard")}
-            >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 3, flexGrow: 1 }}>
+            <Typography variant="h6" sx={{ cursor: "pointer", fontWeight: "bold" }} onClick={() => router.push("/dashboard")}>
               Chatter
             </Typography>
-            <UserSearchBar />
-          </>
+            <Paper
+              component="form"
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                width: 300,
+                borderRadius: 20, // Fully rounded
+                overflow: "hidden",
+                boxShadow: 1,
+                bgcolor: "background.paper",
+              }}
+            >
+              <InputBase
+                sx={{ ml: 2, flex: 1, py: 0.5 }}
+                placeholder="Search users..."
+                inputProps={{ "aria-label": "search users" }}
+              />
+              <IconButton type="submit" sx={{ p: 1 }}>
+                <SearchIcon color="action" />
+              </IconButton>
+            </Paper>
+          </Box>
         )}
 
-        {/* User menu */}
-        <IconButton
-          size="large"
-          color="inherit"
-          onClick={handleMenu}
-          aria-controls="menu-appbar"
-          aria-haspopup="true"
-        >
-          <Avatar
-            src={user?.profilePicture || "/images/profile.webp"}
-            alt={user?.name || "User"}
-            sx={{ width: 32, height: 32 }}
-          />
-          {!isMobile && <Typography sx={{ ml: 1 }}>{user?.name || "User"}</Typography>}
-        </IconButton>
-
-        <Menu
-          id="menu-appbar"
-          anchorEl={anchorEl}
-          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-          keepMounted
-          transformOrigin={{ vertical: "top", horizontal: "right" }}
-          open={Boolean(anchorEl)}
-          onClose={handleClose}
-        >
-          <MenuItem
-            onClick={() => {
-              handleClose();
-              router.push("/profile");
-            }}
+        {/* Right: User Avatar + Menu */}
+        <Box>
+          <IconButton size="large" color="inherit" onClick={handleMenu} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Avatar src={user?.profilePicture || "/images/profile.webp"} alt={user?.name || "User"} sx={{ width: 36, height: 36 }} />
+            {!isMobile && <Typography sx={{ color: "white", fontWeight: 500 }}>{user?.name || "User"}</Typography>}
+          </IconButton>
+          <Menu
+            id="menu-appbar"
+            anchorEl={anchorEl}
+            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+            keepMounted
+            transformOrigin={{ vertical: "top", horizontal: "right" }}
+            open={Boolean(anchorEl)}
+            onClose={handleClose}
+            sx={{ mt: 1 }}
           >
-            Profile
-          </MenuItem>
-          <MenuItem onClick={handleLogout}>Logout</MenuItem>
-        </Menu>
+            <MenuItem onClick={() => { handleClose(); router.push("/profile"); }}>Profile</MenuItem>
+            <MenuItem onClick={handleLogout}>Logout</MenuItem>
+          </Menu>
+        </Box>
       </Toolbar>
     </AppBar>
   );

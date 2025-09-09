@@ -49,10 +49,13 @@ const PostsList: React.FC<PostsListProps> = ({ posts, currentUser, loading, erro
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-      {posts.map((post) => {
+      {posts.map((post, index) => {
+        // Use post._id if available, otherwise fallback to index
+        const key = post._id || `post-${index}`;
+
         const author = post.authorId
           ? {
-              _id: post.authorId._id,
+              _id: post.authorId._id || `unknown-${index}`,
               name: post.authorId.name,
               avatarUrl: post.authorId.profilePicture
                 ? post.authorId.profilePicture.startsWith("http")
@@ -60,7 +63,7 @@ const PostsList: React.FC<PostsListProps> = ({ posts, currentUser, loading, erro
                   : `${process.env.NEXT_PUBLIC_API_BASE_URL || ""}${post.authorId.profilePicture}`
                 : "/static/avatar.png",
             }
-          : { _id: "", name: "Unknown", avatarUrl: "/static/avatar.png" };
+          : { _id: `unknown-${index}`, name: "Unknown", avatarUrl: "/static/avatar.png" };
 
         const handleAuthorClick = () => {
           if (!author._id) return;
@@ -73,7 +76,7 @@ const PostsList: React.FC<PostsListProps> = ({ posts, currentUser, loading, erro
 
         return (
           <Box
-            key={post._id}
+            key={key}
             sx={{
               borderRadius: 3,
               boxShadow: "0 2px 6px rgba(0,0,0,0.12)",
