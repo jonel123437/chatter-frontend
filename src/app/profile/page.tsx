@@ -1,47 +1,49 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
 import { Box } from "@mui/material";
+import React, { useEffect, useState } from "react";
+import PostForm from "@/components/molecules/PostForm";
+import PostsList from "@/components/organisms/PostsList";
 import { Header } from "../../components/molecules/Header";
 import { ProfileHeader } from "@/components/organisms/ProfileHeader";
 import { ProfileContent } from "@/components/organisms/ProfileContent";
-import PostForm from "@/components/molecules/PostForm";
-import PostsList from "@/components/organisms/PostsList";
-import { useCurrentUser } from "./hooks/useCurrentUser";
+
 import { useMyPosts } from "./hooks/useMyPosts";
-import { useCreatePost } from "./hooks/useCreatePost";
 import { useFriends } from "./hooks/useFriends";
 import { useFileUpload } from "./hooks/useFileUpload";
+import { useCreatePost } from "./hooks/useCreatePost";
+import { useCurrentUser } from "./hooks/useCurrentUser";
 
 export default function ProfilePage() {
+  const [token, setToken] = useState<string | null>(null);
+  const [tabValue, setTabValue] = useState(0);
+
   const { posts, setPosts, loading, error, fetchPosts } = useMyPosts();
   const { createPost } = useCreatePost({
     onPostCreated: (newPost) => setPosts((prev) => [newPost, ...prev]),
   });
 
-  const [token, setToken] = useState<string | null>(null);
-  const [tabValue, setTabValue] = useState(0);
-
-  const { user, fetchCurrentUser } = useCurrentUser(token);
+  const { user, fetchCurrentUser, loading: userLoading } = useCurrentUser(token);
   const { friendsList, pendingUsers, fetchFriends, handleAcceptRequest, handleUnfriend } =
     useFriends(token);
 
   const { uploadFile } = useFileUpload(token, fetchCurrentUser);
 
+  // Get token from localStorage on mount
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
-    if (!storedToken) return setToken(null);
     setToken(storedToken);
-    fetchPosts();
+    if (storedToken) fetchPosts();
   }, []);
 
+  // Fetch friends when user is loaded
   useEffect(() => {
     if (user) {
       fetchFriends(user.friends || [], user.friendRequests || []);
     }
   }, [user]);
 
-  if (!token || !user) return null;
+  if (!token || userLoading || !user) return null;
 
   return (
     <Box sx={{ bgcolor: "grey.100", minHeight: "100vh", pb: 5 }}>
@@ -54,8 +56,8 @@ export default function ProfilePage() {
           flexDirection: "column",
           gap: 2,
           width: "100%",
-          maxWidth: 1100, // ✅ keep it narrow like Facebook
-          mx: "auto", // ✅ center horizontally
+          maxWidth: 1100,
+          mx: "auto",
         }}
       >
         {/* Profile Header */}
@@ -77,15 +79,15 @@ export default function ProfilePage() {
                 <PostForm createPost={createPost} onPostCreated={fetchPosts} />
               </Box>
 
-              {/* My Posts */}
+              {/* Profile Posts */}
               <Box sx={{ mt: 2, p: 2, bgcolor: "background.paper", boxShadow: 1, borderRadius: 2 }}>
-                <PostsList posts={posts} loading={loading} error={error} />
+                <PostsList posts={posts} currentUser={user} loading={loading} error={error} />
               </Box>
             </>
           )}
 
           {tabValue !== 0 && (
-            <Box sx={{ p: 2, bgcolor: "background.paper", boxShadow: 1 }}>
+            <Box sx={{ p: 2, bgcolor: "background.paper", boxShadow: 1, borderRadius: 2 }}>
               <ProfileContent
                 tabValue={tabValue}
                 posts={posts}

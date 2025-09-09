@@ -6,9 +6,12 @@ import PublicIcon from "@mui/icons-material/Public";
 import PeopleIcon from "@mui/icons-material/People";
 import LockIcon from "@mui/icons-material/Lock";
 import { Post } from "@/types/post.type";
+import { User } from "@/types/user.type";
+import { useRouter } from "next/navigation";
 
 interface PostsListProps {
   posts: Post[];
+  currentUser: User | null;
   loading?: boolean;
   error?: string | null;
 }
@@ -37,29 +40,40 @@ const timeAgo = (dateString: string) => {
   return `${Math.floor(diff / 86400)}d ago`;
 };
 
-const PostsList: React.FC<PostsListProps> = ({ posts, loading, error }) => {
-  if (loading) return <Typography>Loading...</Typography>;
+const PostsList: React.FC<PostsListProps> = ({ posts, currentUser, loading, error }) => {
+  const router = useRouter();
+
+  if (loading) return <Typography>Loading posts...</Typography>;
   if (error) return <Typography color="error">{error}</Typography>;
   if (!posts || posts.length === 0) return <Typography>No posts yet.</Typography>;
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-      {posts.map((post, index) => {
-        const author =
-          typeof post.authorId === "object" && post.authorId !== null
-            ? {
-                name: post.authorId.name,
-                avatarUrl: post.authorId.profilePicture
-                  ? post.authorId.profilePicture.startsWith("http")
-                    ? post.authorId.profilePicture
-                    : `${process.env.NEXT_PUBLIC_API_BASE_URL || ""}${post.authorId.profilePicture}`
-                  : "/static/avatar.png",
-              }
-            : { name: "Unknown", avatarUrl: "/static/avatar.png" };
+      {posts.map((post) => {
+        const author = post.authorId
+          ? {
+              _id: post.authorId._id,
+              name: post.authorId.name,
+              avatarUrl: post.authorId.profilePicture
+                ? post.authorId.profilePicture.startsWith("http")
+                  ? post.authorId.profilePicture
+                  : `${process.env.NEXT_PUBLIC_API_BASE_URL || ""}${post.authorId.profilePicture}`
+                : "/static/avatar.png",
+            }
+          : { _id: "", name: "Unknown", avatarUrl: "/static/avatar.png" };
+
+        const handleAuthorClick = () => {
+          if (!author._id) return;
+          if (currentUser && author._id === currentUser.id) {
+            router.push("/profile");
+          } else {
+            router.push(`/users/${author._id}`);
+          }
+        };
 
         return (
           <Box
-            key={`${post._id}-${index}`} // ✅ always unique
+            key={post._id}
             sx={{
               borderRadius: 3,
               boxShadow: "0 2px 6px rgba(0,0,0,0.12)",
@@ -71,11 +85,27 @@ const PostsList: React.FC<PostsListProps> = ({ posts, loading, error }) => {
           >
             {/* Header */}
             <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-              <Avatar src={author.avatarUrl} alt={author.name} sx={{ mr: 2 }}>
+              {/* Make avatar clickable */}
+              <Avatar
+                src={author.avatarUrl}
+                alt={author.name}
+                sx={{ mr: 2, cursor: "pointer" }}
+                onClick={handleAuthorClick}
+              >
                 {author.name.charAt(0)}
               </Avatar>
               <Box sx={{ flexGrow: 1 }}>
-                <Typography sx={{ fontWeight: 600 }}>{author.name}</Typography>
+                <Typography
+                  sx={{
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    textDecoration: "none",
+                    "&:hover": { textDecoration: "underline" },
+                  }}
+                  onClick={handleAuthorClick}
+                >
+                  {author.name}
+                </Typography>
                 <Box
                   sx={{
                     display: "flex",
@@ -84,22 +114,17 @@ const PostsList: React.FC<PostsListProps> = ({ posts, loading, error }) => {
                     color: "text.secondary",
                   }}
                 >
-                  <Typography variant="caption">
-                    {timeAgo(post.createdAt)}
-                  </Typography>
+                  <Typography variant="caption">{timeAgo(post.createdAt)}</Typography>
                   {getVisibilityIcon(post.visibility)}
                 </Box>
               </Box>
             </Box>
 
             {/* Post content */}
-            <Typography sx={{ wordBreak: "break-word", mb: 1 }}>
-              {post.content}
-            </Typography>
+            <Typography sx={{ wordBreak: "break-word", mb: 1 }}>{post.content}</Typography>
           </Box>
         );
       })}
-
     </Box>
   );
 };

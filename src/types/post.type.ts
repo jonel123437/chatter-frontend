@@ -21,3 +21,4 @@ export interface PostModalContentProps {
   onVisibilitySelect: (value: "public" | "friends" | "only_me") => void;
   onVisibilityMenuClose?: () => void;
 }
+

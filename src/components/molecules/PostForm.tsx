@@ -16,6 +16,7 @@ import {
 import axios from "axios";
 import { Post } from "@/types/post.type";
 import { PostModalContent } from "./PostModalContent";
+import { useRouter } from "next/navigation";
 
 interface PostFormProps {
   createPost: (
@@ -41,14 +42,14 @@ const PostForm: React.FC<PostFormProps> = ({ createPost, onPostCreated }) => {
   const [visibility, setVisibility] =
     useState<"public" | "friends" | "only_me">("public");
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-
   const [user, setUser] = useState<ApiUser | null>(null);
 
   const theme = useTheme();
   const isXs = useMediaQuery(theme.breakpoints.down("sm"));
+  const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem("token"); // still need token to auth API
+    const token = localStorage.getItem("token");
     if (!token) return;
 
     const fetchUser = async () => {
@@ -94,6 +95,11 @@ const PostForm: React.FC<PostFormProps> = ({ createPost, onPostCreated }) => {
     }
   };
 
+  // Redirect to current user's profile
+  const handleAvatarClick = () => {
+    router.push("/profile");
+  };
+
   return (
     <>
       {/* Profile + Input */}
@@ -108,7 +114,11 @@ const PostForm: React.FC<PostFormProps> = ({ createPost, onPostCreated }) => {
         <Avatar
           src={user?.profilePicture || "/images/profile.webp"}
           alt={user?.name || "User"}
-          sx={{ width: 48, height: 48 }}
+          sx={{ width: 48, height: 48, cursor: "pointer" }}
+          onClick={(e) => {
+            e.stopPropagation(); // prevent opening the modal
+            handleAvatarClick();
+          }}
         />
         <TextField
           placeholder={

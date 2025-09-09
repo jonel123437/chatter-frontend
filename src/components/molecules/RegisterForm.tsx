@@ -1,42 +1,36 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { InputField } from "@/components/atoms/InputField";
 import { Button } from "@/components/atoms/Button";
 import MUIButton from "@mui/material/Button";
 import { Alert, Paper, Typography, Stack, Box, Snackbar } from "@mui/material";
 import { useRouter } from "next/navigation";
 
-interface LoginFormProps {
-  onSubmit: (email: string, password: string) => void;
+interface RegisterFormProps {
+  onSubmit: (name: string, email: string, password: string) => void;
   loading?: boolean;
   error?: string;
 }
 
-export const LoginForm: React.FC<LoginFormProps> = ({
+export const RegisterForm: React.FC<RegisterFormProps> = ({
   onSubmit,
   loading,
   error,
 }) => {
   const router = useRouter();
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showSuccess, setShowSuccess] = useState(false);
-
-  useEffect(() => {
-    // Check if redirected from registration
-    if (localStorage.getItem("registerSuccess")) {
-      setShowSuccess(true);
-      localStorage.removeItem("registerSuccess");
-    }
-  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(email, password);
-  };
+    onSubmit(name, email, password);
 
-  const redirectToRegister = () => {
-    router.push("/auth/register");
+    // Set a flag in localStorage to show success toast on login page
+    localStorage.setItem("registerSuccess", "true");
+
+    // Redirect immediately
+    router.push("/auth/login");
   };
 
   return (
@@ -66,39 +60,31 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           align="center"
           sx={{ fontWeight: 600, color: "#3f51b5" }}
         >
-          Login
+          Create Account
         </Typography>
 
         <form onSubmit={handleSubmit}>
           <Stack spacing={3}>
+            <InputField label="Name" type="text" value={name} onChange={setName} />
             <InputField label="Email" type="email" value={email} onChange={setEmail} />
             <InputField label="Password" type="password" value={password} onChange={setPassword} />
             {error && <Alert severity="error" variant="filled">{error}</Alert>}
 
             <Button loading={loading} type="submit">
-              Login
+              Register
             </Button>
 
             <MUIButton
               variant="text"
-              onClick={redirectToRegister}
+              onClick={() => router.push("/auth/login")}
               fullWidth
               sx={{ color: "#3f51b5", textTransform: "none" }}
             >
-              Register
+              Back to Login
             </MUIButton>
           </Stack>
         </form>
       </Paper>
-
-      {/* Success Snackbar */}
-      <Snackbar
-        open={showSuccess}
-        autoHideDuration={2000}
-        onClose={() => setShowSuccess(false)}
-        message="Registration successful! Please login."
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      />
     </Box>
   );
 };

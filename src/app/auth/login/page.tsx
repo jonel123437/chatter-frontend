@@ -1,5 +1,5 @@
 "use client";
-import { useLogin } from "./hook";
+import { useLogin } from "./hooks/useLogin";
 import { LoginForm } from "@/components/molecules/LoginForm";
 
 export default function LoginPage() {

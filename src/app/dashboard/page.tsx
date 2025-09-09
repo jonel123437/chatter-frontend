@@ -7,21 +7,24 @@ import { Header } from "@/components/molecules/Header";
 import PostsList from "@/components/organisms/PostsList";
 import { useCreatePost } from "./hooks/useCreatePost";
 import { useFetchPublicPosts } from "./hooks/useFetchPublicPosts";
+import { useCurrentUser } from "./hooks/useCurrentUser";
 
 export default function DashboardPage() {
   const { createPost, loading: creating, error: createError } = useCreatePost();
   const { posts, loading, error, fetchPosts } = useFetchPublicPosts();
+  const { currentUser, loading: userLoading } = useCurrentUser();
   const [mounted, setMounted] = useState(false);
 
+  // Ensure client-only logic runs after mount
   useEffect(() => {
     setMounted(true);
   }, []);
 
   const handlePostCreated = async () => {
-    await fetchPosts(); 
+    await fetchPosts();
   };
 
-  if (!mounted) return null;
+  if (!mounted || userLoading) return null;
 
   return (
     <Box sx={{ bgcolor: "grey.100", minHeight: "100vh", width: "100%", pb: 5 }}>
@@ -61,7 +64,12 @@ export default function DashboardPage() {
 
         {/* Posts List */}
         <Box sx={{ p: 2, bgcolor: "background.paper", boxShadow: 1, borderRadius: 2 }}>
-          <PostsList posts={posts} loading={loading} error={error} />
+          <PostsList
+            posts={posts}
+            currentUser={currentUser}
+            loading={loading}
+            error={error}
+          />
         </Box>
       </Box>
     </Box>

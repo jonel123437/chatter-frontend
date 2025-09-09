@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import axios from "axios";
-import { Post } from "@/app/profile/hooks/useFetchUserPosts"; // reuse Post interface
+import { Post } from "@/types/post.type";
 
 interface UseCreatePostProps {
   onPostCreated?: (newPost: Post) => void;
@@ -23,8 +23,11 @@ export const useCreatePost = ({ onPostCreated }: UseCreatePostProps = {}) => {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("No token found");
 
+      const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL;
+      if (!baseURL) throw new Error("API base URL is not defined");
+
       const res = await axios.post<Post>(
-        "http://localhost:5000/posts",
+        `${baseURL}/posts`,
         { content, visibility },
         { headers: { Authorization: `Bearer ${token}` } }
       );
