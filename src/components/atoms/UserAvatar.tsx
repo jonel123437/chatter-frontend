@@ -3,12 +3,17 @@ import React from "react";
 
 interface UserAvatarProps {
   src?: string;
-  name: string;
+  name?: string; // make optional to handle undefined
   size?: number;
   fallbackSrc?: string;
 }
 
-export const UserAvatar: React.FC<UserAvatarProps> = ({ src, name, size = 40, fallbackSrc }) => (
+export const UserAvatar: React.FC<UserAvatarProps> = ({
+  src,
+  name = "?", // default to "?" if name is missing
+  size = 40,
+  fallbackSrc,
+}) => (
   <Avatar
     src={src}
     sx={{ width: size, height: size }}
@@ -16,6 +21,6 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({ src, name, size = 40, fa
       if (fallbackSrc) e.currentTarget.src = fallbackSrc;
     }}
   >
-    {name[0]}
+    {name && name.length > 0 ? name[0] : "?"}
   </Avatar>
 );

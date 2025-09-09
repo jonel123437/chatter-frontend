@@ -22,33 +22,31 @@ export const FriendsTab: React.FC<FriendsTabProps> = ({
       Friends ({friendsList.length})
     </Typography>
     <List>
-      {friendsList.map((friend) => (
-        <FriendListItem
-          key={friend.id}
-          id={friend.id}
-          name={friend.name}
-          profilePicture={friend.profilePicture}
-          onUnfriend={handleUnfriend}
-          onClick={() => goToProfile(friend.id)} // ✅ navigate on click
-        />
-      ))}
-    </List>
+  {friendsList.map((friend, index) => (
+    <FriendListItem
+      key={friend.id ?? `friend-${index}`} // fallback to index if id is missing
+      id={friend.id}
+      name={friend.name}
+      profilePicture={friend.profilePicture}
+      onUnfriend={handleUnfriend}
+      onClick={() => goToProfile(friend.id)}
+    />
+  ))}
+</List>
 
-    <Typography variant="h6" sx={{ mt: 3, mb: 1 }}>
-      Pending Requests ({pendingUsers.length})
-    </Typography>
-    <List>
-      {pendingUsers.map((request) => (
-        <FriendListItem
-          key={request.id}
-          id={request.id}
-          name={request.name}
-          profilePicture={request.profilePicture}
-          isPending
-          onAccept={handleAcceptRequest}
-          onClick={() => goToProfile(request.id)} // ✅ navigate on click
-        />
-      ))}
-    </List>
+<List>
+  {pendingUsers.map((request, index) => (
+    <FriendListItem
+      key={request.id ?? `pending-${index}`} // fallback to index
+      id={request.id}
+      name={request.name}
+      profilePicture={request.profilePicture}
+      isPending
+      onAccept={handleAcceptRequest}
+      onClick={() => goToProfile(request.id)}
+    />
+  ))}
+</List>
+
   </Box>
 );

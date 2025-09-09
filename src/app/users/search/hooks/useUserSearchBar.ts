@@ -1,9 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { User } from "@/types/user.type";
 
-export function useUserSearch(query: string) {
+const API_BASE = "http://localhost:5000";
+
+export function useUserSearchBar(initialQuery: string = "") {
+  const [query, setQuery] = useState(initialQuery);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -22,17 +25,11 @@ export function useUserSearch(query: string) {
       setError("");
 
       try {
-        const res = await fetch(
-          `http://localhost:5000/users/search?q=${encodeURIComponent(query)}`
-        );
-
+        const res = await fetch(`${API_BASE}/users/search?q=${encodeURIComponent(query)}`);
         if (!res.ok) throw new Error("Failed to fetch users");
 
         const data: User[] = await res.json();
-
-        if (!isCancelled) {
-          setUsers(data || []);
-        }
+        if (!isCancelled) setUsers(data || []);
       } catch (err: any) {
         if (!isCancelled) {
           setError(err.message || "An error occurred");
@@ -50,5 +47,5 @@ export function useUserSearch(query: string) {
     };
   }, [query]);
 
-  return { users, loading, error };
+  return { query, setQuery, users, loading, error };
 }

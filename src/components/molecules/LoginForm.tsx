@@ -21,6 +21,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   useEffect(() => {
     // Check if redirected from registration
@@ -37,6 +38,12 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
   const redirectToRegister = () => {
     router.push("/auth/register");
+  };
+
+  const handleGoogleLogin = () => {
+    setGoogleLoading(true);
+    // Redirect to backend Google OAuth endpoint
+    window.location.href = "http://localhost:5000/auth/google";
   };
 
   return (
@@ -89,6 +96,18 @@ export const LoginForm: React.FC<LoginFormProps> = ({
             </MUIButton>
           </Stack>
         </form>
+
+        {/* Google OAuth */}
+        <MUIButton
+          variant="contained"
+          color="secondary"
+          fullWidth
+          sx={{ mt: 3 }}
+          onClick={handleGoogleLogin}
+          disabled={googleLoading}
+        >
+          {googleLoading ? "Redirecting..." : "Sign in with Google"}
+        </MUIButton>
       </Paper>
 
       {/* Success Snackbar */}
