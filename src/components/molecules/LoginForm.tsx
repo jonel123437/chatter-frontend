@@ -3,7 +3,15 @@ import React, { useState, useEffect } from "react";
 import { InputField } from "@/components/atoms/InputField";
 import { Button } from "@/components/atoms/Button";
 import MUIButton from "@mui/material/Button";
-import { Alert, Paper, Typography, Stack, Box, Snackbar } from "@mui/material";
+import {
+  Alert,
+  Paper,
+  Typography,
+  Stack,
+  Box,
+  Snackbar,
+  Divider,
+} from "@mui/material";
 import { useRouter } from "next/navigation";
 
 interface LoginFormProps {
@@ -21,7 +29,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
 
   useEffect(() => {
     // Check if redirected from registration
@@ -41,7 +48,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   };
 
   const handleGoogleLogin = () => {
-    setGoogleLoading(true);
     // Redirect to backend Google OAuth endpoint
     window.location.href = "http://localhost:5000/auth/google";
   };
@@ -78,36 +84,80 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
         <form onSubmit={handleSubmit}>
           <Stack spacing={3}>
-            <InputField label="Email" type="email" value={email} onChange={setEmail} />
-            <InputField label="Password" type="password" value={password} onChange={setPassword} />
-            {error && <Alert severity="error" variant="filled">{error}</Alert>}
+            <InputField
+              label="Email"
+              type="email"
+              value={email}
+              onChange={setEmail}
+            />
+            <InputField
+              label="Password"
+              type="password"
+              value={password}
+              onChange={setPassword}
+            />
+            {error && (
+              <Alert severity="error" variant="filled">
+                {error}
+              </Alert>
+            )}
 
             <Button loading={loading} type="submit">
               Login
             </Button>
 
+            {/* Divider */}
+            <Divider sx={{ my: 2 }}>or</Divider>
+
+            {/* Google OAuth Button */}
             <MUIButton
-              variant="text"
-              onClick={redirectToRegister}
+              variant="outlined"
               fullWidth
-              sx={{ color: "#3f51b5", textTransform: "none" }}
+              startIcon={
+                <img
+                  src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                  alt="Google"
+                  style={{ width: 20, height: 20 }}
+                />
+              }
+              sx={{
+                textTransform: "none",
+                fontWeight: 500,
+                color: "#757575",
+                borderColor: "#dadce0",
+                backgroundColor: "#fff",
+                "&:hover": {
+                  backgroundColor: "#f7f8f8",
+                  borderColor: "#dadce0",
+                },
+              }}
+              onClick={handleGoogleLogin}
             >
-              Register
+              Sign in with Google
             </MUIButton>
+
+            {/* Register link */}
+            <Typography
+              variant="body2"
+              align="center"
+              sx={{ mt: 2, color: "#555" }}
+            >
+              Don’t have an account?{" "}
+              <MUIButton
+                variant="text"
+                onClick={redirectToRegister}
+                sx={{
+                  color: "#3f51b5",
+                  textTransform: "none",
+                  fontWeight: 600,
+                  fontSize: "0.9rem",
+                }}
+              >
+                Register
+              </MUIButton>
+            </Typography>
           </Stack>
         </form>
-
-        {/* Google OAuth */}
-        <MUIButton
-          variant="contained"
-          color="secondary"
-          fullWidth
-          sx={{ mt: 3 }}
-          onClick={handleGoogleLogin}
-          disabled={googleLoading}
-        >
-          {googleLoading ? "Redirecting..." : "Sign in with Google"}
-        </MUIButton>
       </Paper>
 
       {/* Success Snackbar */}

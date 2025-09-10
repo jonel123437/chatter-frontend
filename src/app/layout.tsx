@@ -1,4 +1,5 @@
-import "../styles/globals.css"; 
+import "../styles/globals.css";
+import { CssBaseline } from "@mui/material";
 
 export const metadata = {
   title: "Chatter App",
@@ -12,7 +13,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <CssBaseline />
+        {children}
+      </body>
     </html>
   );
 }

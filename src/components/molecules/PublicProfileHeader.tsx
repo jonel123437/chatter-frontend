@@ -94,6 +94,7 @@ export const PublicProfileHeader: React.FC<PublicProfileHeaderProps> = ({
             border: "4px solid white",
             mb: 2,
             cursor: "pointer",
+            backgroundColor: "#fff", 
           }}
           onClick={() => {
             setSelectedType("profile");
@@ -102,6 +103,7 @@ export const PublicProfileHeader: React.FC<PublicProfileHeaderProps> = ({
           imgProps={{
             onError: (e) =>
               ((e.currentTarget as HTMLImageElement).src = "/images/profile.webp"),
+            style: { backgroundColor: "#fff" }, 
           }}
         />
 
